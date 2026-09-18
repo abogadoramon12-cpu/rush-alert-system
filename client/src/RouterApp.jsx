@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import App from "./App";
 import PccDashboard from "./pages/PccDashboard";
+import SupervisorDashboard from "./pages/SupervisorDashboard";
 
 function RouterApp() {
   return (
@@ -9,6 +10,11 @@ function RouterApp() {
         <Route path="/" element={<App />} />
 
         <Route path="/pcc/:pccId" element={<PccDashboard />} />
+        
+        <Route
+          path="/supervisor"
+          element={<SupervisorDashboard />}
+        />
 
         <Route
           path="*"

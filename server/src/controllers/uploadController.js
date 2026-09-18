@@ -5,6 +5,10 @@ const {
 } = require("../services/rushDetector");
 
 const {
+  createAuditLog,
+} = require("../services/auditLogStore");
+
+const {
   addRushes,
 } = require("../services/rushStore");
 
@@ -114,6 +118,19 @@ function uploadSpreadsheetController(
           findPccByName(
             alert.coordinator
           );
+
+        createAuditLog({
+          alertId: alert.id,
+          pccId: alert.pccId,
+          coordinator: alert.coordinator,
+          event: "RUSH_RECEIVED",
+          timestamp: alert.detectedAt,
+          details: {
+            patientName: alert.patientName,
+            reminder: alert.reminder,
+            deadline: alert.deadline,
+          },
+        });
 
         if (!pcc) {
           console.log(

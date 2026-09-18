@@ -4,94 +4,75 @@ import { useParams } from "react-router-dom";
 import "./PccDashboard.css";
 import API_URL from "../services/api";
 
-const DEFAULT_TITLE =
-  "Rush Alert — PCC Workspace";
-
-const WARNING_TIME =
-  15 * 60 * 1000;
+const DEFAULT_TITLE = "Rush Alert — PCC Workspace";
+const WARNING_TIME = 15 * 60 * 1000;
 
 const PCC_USERS = {
   "pcc-harry-mangubat": {
     name: "Harry Mangubat",
     initial: "H",
   },
-
   "pcc-ian-jasper-abatayo": {
     name: "Ian Jasper Abatayo",
     initial: "I",
   },
-
   "pcc-ma-cecilia-quipman": {
     name: "Ma Cecilia Quipman",
     initial: "M",
   },
-
   "pcc-junnel-delvo": {
     name: "Junnel Delvo",
     initial: "J",
   },
-
   "pcc-ralph-go": {
     name: "Ralph Go",
     initial: "R",
   },
-
   "pcc-jason-rosco": {
     name: "Jason Rosco",
     initial: "J",
   },
-
   "pcc-jose-nuena": {
     name: "Jose Nuena",
     initial: "J",
   },
-
   "pcc-jeneev-pearl-hekin": {
     name: "Jeneev Pearl Hekin",
     initial: "J",
   },
-
   "pcc-michael-jul-contratista": {
     name: "Michael Jul Contratista",
     initial: "M",
   },
-
   "pcc-abigail-basera": {
     name: "Abigail Basera",
     initial: "A",
   },
-
   "pcc-juvie-cagande": {
     name: "Juvie Cagande",
     initial: "J",
   },
-
   "pcc-reyza-cuerbo": {
     name: "Reyza Cuerbo",
     initial: "R",
   },
-
   "pcc-daryl-acera": {
     name: "Daryl Acera",
     initial: "D",
   },
 };
 
-/* =========================
-   TIMER
-========================= */
+/* =========================================================
+   TIMER HELPERS
+========================================================= */
 
-function formatRemaining(
-  deadline,
-  currentTime
-) {
+function formatRemaining(deadline, currentTime) {
   if (!deadline) {
     return "00:00:00";
   }
 
   const difference =
-    new Date(deadline).getTime() -
-    currentTime;
+    new Date(deadline).getTime() - currentTime;
 
   if (difference <= 0) {
     return "00:00:00";
@@ -122,10 +103,7 @@ function formatRemaining(
     .join(":");
 }
 
-function getSlaStatus(
-  deadline,
-  currentTime
-) {
+function getSlaStatus(deadline, currentTime) {
   if (!deadline) {
     return "ACTIVE";
   }
@@ -145,19 +123,22 @@ function getSlaStatus(
   return "ACTIVE";
 }
 
-/* =========================
+/* =========================================================
    COMPONENT
-========================= */
+========================================================= */
 
 function PccDashboard() {
-  const { pccId: PCC_ID } =
-    useParams();
+  const { pccId: PCC_ID } = useParams();
 
   const currentPcc =
     PCC_USERS[PCC_ID] || {
       name: "Unknown PCC",
       initial: "?",
     };
+
+  /* =======================================================
+     STATE
+  ======================================================= */
 
   const [currentTime, setCurrentTime] =
     useState(Date.now());
@@ -167,13 +148,22 @@ function PccDashboard() {
 
   const [alerts, setAlerts] =
     useState([]);
+  
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [loadError, setLoadError] =
+  useState(null);
+
+  const [completedAlerts, setCompletedAlerts] =
+    useState([]);
 
   const [newRush, setNewRush] =
     useState(null);
 
-  /* =========================
+  /* =======================================================
      REFS
-  ========================= */
+  ======================================================= */
 
   const audioContextRef =
     useRef(null);
@@ -187,27 +177,20 @@ function PccDashboard() {
   const titleIntervalRef =
     useRef(null);
 
-  /*
-   * Keep the latest alerts available
-   * to the timer without recreating
-   * the timer every time alerts change.
-   */
-
   const alertsRef =
     useRef([]);
 
-  /* =========================
+  /* =======================================================
      KEEP ALERT REF UPDATED
-  ========================= */
+  ======================================================= */
 
   useEffect(() => {
-    alertsRef.current =
-      alerts;
+    alertsRef.current = alerts;
   }, [alerts]);
 
-  /* =========================
+  /* =======================================================
      CLOCK
-  ========================= */
+  ======================================================= */
 
   useEffect(() => {
     const timer =
@@ -220,21 +203,19 @@ function PccDashboard() {
     };
   }, []);
 
-  /* =========================
+  /* =======================================================
      SLA WARNING WATCHER
-  ========================= */
+  ======================================================= */
 
   useEffect(() => {
     const warningWatcher =
       setInterval(() => {
-        const now =
-          Date.now();
+        const now = Date.now();
 
         alertsRef.current.forEach(
           (alert) => {
             if (
-              alert.status ===
-                "COMPLETED" ||
+              alert.status === "COMPLETED" ||
               !alert.deadline
             ) {
               return;
@@ -248,25 +229,14 @@ function PccDashboard() {
             const remaining =
               deadline - now;
 
-            /*
-             * Rush has entered
-             * the 15-minute warning zone.
-             */
-
             if (
               remaining > 0 &&
-              remaining <=
-                WARNING_TIME &&
+              remaining <= WARNING_TIME &&
               !warnedRushIdsRef.current.has(
                 alert.id
               )
             ) {
               warnedRushIdsRef.current.add(
-                alert.id
-              );
-
-              console.log(
-                "⚠️ SLA WARNING:",
                 alert.id
               );
 
@@ -277,20 +247,16 @@ function PccDashboard() {
       }, 1000);
 
     return () => {
-      clearInterval(
-        warningWatcher
-      );
+      clearInterval(warningWatcher);
     };
   }, []);
 
-  /* =========================
+  /* =======================================================
      TITLE ALERT
-  ========================= */
+  ======================================================= */
 
   function startTitleAlert() {
-    if (
-      titleIntervalRef.current
-    ) {
+    if (titleIntervalRef.current) {
       clearInterval(
         titleIntervalRef.current
       );
@@ -314,24 +280,21 @@ function PccDashboard() {
   }
 
   function stopTitleAlert() {
-    if (
-      titleIntervalRef.current
-    ) {
+    if (titleIntervalRef.current) {
       clearInterval(
         titleIntervalRef.current
       );
 
-      titleIntervalRef.current =
-        null;
+      titleIntervalRef.current = null;
     }
 
     document.title =
       DEFAULT_TITLE;
   }
 
-  /* =========================
+  /* =======================================================
      AUDIO ENGINE
-  ========================= */
+  ======================================================= */
 
   function getAudioContext() {
     try {
@@ -343,20 +306,13 @@ function PccDashboard() {
         return null;
       }
 
-      if (
-        !audioContextRef.current
-      ) {
+      if (!audioContextRef.current) {
         audioContextRef.current =
           new AudioContext();
       }
 
       return audioContextRef.current;
-    } catch (error) {
-      console.warn(
-        "Unable to create audio context:",
-        error
-      );
-
+    } catch {
       return null;
     }
   }
@@ -370,23 +326,17 @@ function PccDashboard() {
     }
 
     if (
-      context.state ===
-      "suspended"
+      context.state === "suspended"
     ) {
       context.resume().catch(
-        (error) => {
-          console.warn(
-            "Unable to resume audio:",
-            error
-          );
-        }
+        () => {}
       );
     }
   }
 
-  /* =========================
+  /* =======================================================
      RUSH ALERT SOUND
-  ========================= */
+  ======================================================= */
 
   function playAlertSound() {
     try {
@@ -398,13 +348,8 @@ function PccDashboard() {
       }
 
       if (
-        context.state ===
-        "suspended"
+        context.state === "suspended"
       ) {
-        console.warn(
-          "Rush alarm received, but browser audio is suspended."
-        );
-
         context.resume().catch(
           () => {}
         );
@@ -448,8 +393,7 @@ function PccDashboard() {
         const gain =
           context.createGain();
 
-        oscillator.type =
-          "sine";
+        oscillator.type = "sine";
 
         oscillator.frequency.setValueAtTime(
           frequency,
@@ -578,11 +522,11 @@ function PccDashboard() {
       lowImpact(
         now,
         180,
-        0.30
+        0.3
       );
 
       alarmTone(
-        now + 0.30,
+        now + 0.3,
         850,
         0.28,
         0.52
@@ -619,32 +563,17 @@ function PccDashboard() {
         0.35,
         0.46
       );
-    } catch (error) {
-      console.warn(
-        "Unable to play rush alert sound:",
-        error
-      );
+    } catch {
+      // Audio failures are safely ignored.
     }
   }
 
-  /* =========================
+  /* =======================================================
      WARNING SOUND
-  ========================= */
+  ======================================================= */
 
   function playWarningSound() {
     try {
-      /*
-       * IMPORTANT:
-       *
-       * Use the SAME AudioContext
-       * as the main rush alarm.
-       *
-       * This prevents the warning
-       * sound from being created
-       * inside a separate suspended
-       * AudioContext.
-       */
-
       const context =
         getAudioContext();
 
@@ -653,13 +582,8 @@ function PccDashboard() {
       }
 
       if (
-        context.state ===
-        "suspended"
+        context.state === "suspended"
       ) {
-        console.warn(
-          "SLA warning reached, but browser audio is suspended."
-        );
-
         context.resume().catch(
           () => {}
         );
@@ -703,8 +627,7 @@ function PccDashboard() {
         const gain =
           context.createGain();
 
-        oscillator.type =
-          "sine";
+        oscillator.type = "sine";
 
         oscillator.frequency.setValueAtTime(
           frequency,
@@ -743,12 +666,6 @@ function PccDashboard() {
         );
       }
 
-      /*
-       * WARNING:
-       * Two strong tones followed
-       * by a short priority tone.
-       */
-
       warningTone(
         now,
         880,
@@ -766,17 +683,14 @@ function PccDashboard() {
         1175,
         0.32
       );
-    } catch (error) {
-      console.warn(
-        "Unable to play SLA warning sound:",
-        error
-      );
+    } catch {
+      // Audio failures are safely ignored.
     }
   }
 
-  /* =========================
+  /* =======================================================
      AUDIO UNLOCK
-  ========================= */
+  ======================================================= */
 
   useEffect(() => {
     const handleInteraction =
@@ -817,17 +731,15 @@ function PccDashboard() {
     };
   }, []);
 
-  /* =========================
+  /* =======================================================
      CLEANUP
-  ========================= */
+  ======================================================= */
 
   useEffect(() => {
     return () => {
       stopTitleAlert();
 
-      if (
-        audioContextRef.current
-      ) {
+      if (audioContextRef.current) {
         try {
           audioContextRef.current.close();
         } catch {
@@ -837,121 +749,115 @@ function PccDashboard() {
     };
   }, []);
 
-  /* =========================
-     LOAD SAVED RUSHES
-  ========================= */
+  /* =======================================================
+     LOAD EXISTING RUSHES
+  ======================================================= */
 
   async function loadExistingRushes() {
+    setIsLoading(true);
+    setLoadError(null);
+
     try {
       const response =
         await fetch(
-          `${API_URL}/api/rush-store/pcc/` +
-            PCC_ID
+          `${API_URL}/api/rush-store/pcc/${PCC_ID}`
         );
+
+      if (!response.ok) {
+        throw new Error(
+          `Request failed with status ${response.status}`
+        );
+      }
 
       const data =
         await response.json();
 
       if (
-        data.success &&
-        Array.isArray(data.alerts)
+        !data.success ||
+        !Array.isArray(data.alerts)
       ) {
-        setAlerts(
-          data.alerts
+        throw new Error(
+          "Invalid rush queue response."
         );
       }
-    } catch (error) {
-      console.error(
-        "Unable to load existing rushes:",
-        error
+
+      const activeAlerts =
+        data.alerts.filter(
+          (alert) =>
+            alert.status !==
+            "COMPLETED"
+        );
+
+      setAlerts(activeAlerts);
+    } catch {
+      setLoadError(
+        "Unable to load the rush queue. Please try again."
       );
+    } finally {
+      setIsLoading(false);
     }
+  }
+
+  function retryLoadRushes() {
+    loadExistingRushes();
   }
 
   useEffect(() => {
     loadExistingRushes();
   }, [PCC_ID]);
 
-  /* =========================
+  /* =======================================================
      SOCKET.IO
-  ========================= */
+  ======================================================= */
 
   useEffect(() => {
-    if (
-      "Notification" in window &&
-      Notification.permission ===
-        "default"
-    ) {
-      Notification.requestPermission()
-        .then((permission) => {
-          console.log(
-            "Rush Alert notification permission:",
-            permission
-          );
-        })
-        .catch((error) => {
-          console.warn(
-            "Notification permission request failed:",
-            error
-          );
-        });
+    if (!PCC_ID) {
+      return;
     }
 
     const socket =
-      io(
-        API_URL,
-        {
-          transports: [
-            "websocket",
-            "polling",
-          ],
-        }
+      io(API_URL, {
+        transports: [
+          "websocket",
+          "polling",
+        ],
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+      });
+
+    function registerPcc() {
+      socket.emit(
+        "pcc:join",
+        PCC_ID
       );
+    }
 
     socket.on(
       "connect",
       async () => {
-        console.log(
-          "Connected to Rush Alert server:",
-          socket.id
-        );
+        setSocketConnected(true);
 
-        setSocketConnected(
-          true
-        );
-
-        socket.emit(
-          "pcc:join",
-          PCC_ID
-        );
+        registerPcc();
 
         await loadExistingRushes();
       }
     );
 
-    /* =========================
+    /* =====================================================
        NEW RUSH
-    ========================= */
+    ===================================================== */
 
     socket.on(
       "rush:new",
       (alert) => {
-        console.log(
-          "NEW RUSH ALERT RECEIVED:",
-          alert
-        );
-
         if (
           alert.pccId &&
           alert.pccId !== PCC_ID
         ) {
           return;
         }
-
-        /*
-         * Prevent duplicate
-         * real-time alerts.
-         */
 
         if (
           alertedRushIdsRef.current.has(
@@ -964,10 +870,6 @@ function PccDashboard() {
         alertedRushIdsRef.current.add(
           alert.id
         );
-
-        /*
-         * Immediately add the rush.
-         */
 
         setAlerts(
           (currentAlerts) => {
@@ -989,21 +891,11 @@ function PccDashboard() {
           }
         );
 
-        /*
-         * IMPORTANT:
-         *
-         * Rush sound fires immediately.
-         */
-
         playAlertSound();
 
         setNewRush(alert);
 
         startTitleAlert();
-
-        /*
-         * Desktop notification.
-         */
 
         if (
           "Notification" in window &&
@@ -1019,10 +911,8 @@ function PccDashboard() {
                     `${alert.coordinator || "PCC"} — ` +
                     `${alert.patientName || "Rush Request"}\n` +
                     "Immediate action required.",
-
                   requireInteraction:
                     true,
-
                   tag:
                     "rush-" +
                     alert.id,
@@ -1032,58 +922,61 @@ function PccDashboard() {
             notification.onclick =
               () => {
                 window.focus();
-
                 notification.close();
               };
-          } catch (error) {
-            console.warn(
-              "Unable to create desktop notification:",
-              error
-            );
+          } catch {
+            // Ignore notification errors.
           }
         }
       }
     );
 
-    /* =========================
+    /* =====================================================
        RUSH UPDATED
-    ========================= */
+    ===================================================== */
 
     socket.on(
       "rush:updated",
       (alert) => {
-        console.log(
-          "RUSH UPDATED:",
-          alert
-        );
-
-        setAlerts(
-          (currentAlerts) => {
-            if (
-              alert.status ===
-              "COMPLETED"
-            ) {
-              return currentAlerts.filter(
-                (existingAlert) =>
-                  existingAlert.id !==
-                  alert.id
-              );
-            }
-
-            return currentAlerts.map(
-              (existingAlert) =>
-                existingAlert.id ===
-                alert.id
-                  ? alert
-                  : existingAlert
-            );
-          }
-        );
-
         if (
           alert.status ===
           "COMPLETED"
         ) {
+          setAlerts(
+            (currentAlerts) =>
+              currentAlerts.filter(
+                (existingAlert) =>
+                  existingAlert.id !==
+                  alert.id
+              )
+          );
+
+          setCompletedAlerts(
+            (currentCompleted) => {
+              const exists =
+                currentCompleted.some(
+                  (existingAlert) =>
+                    existingAlert.id ===
+                    alert.id
+                );
+
+              if (exists) {
+                return currentCompleted.map(
+                  (existingAlert) =>
+                    existingAlert.id ===
+                    alert.id
+                      ? alert
+                      : existingAlert
+                );
+              }
+
+              return [
+                alert,
+                ...currentCompleted,
+              ];
+            }
+          );
+
           setNewRush(
             (currentRush) =>
               currentRush &&
@@ -1094,66 +987,57 @@ function PccDashboard() {
           );
 
           stopTitleAlert();
-        }
-      }
-    );
 
-    socket.on(
-      "pcc:connected",
-      (data) => {
-        console.log(
-          "PCC room connected:",
-          data
+          return;
+        }
+
+        setAlerts(
+          (currentAlerts) =>
+            currentAlerts.map(
+              (existingAlert) =>
+                existingAlert.id ===
+                alert.id
+                  ? alert
+                  : existingAlert
+            )
         );
       }
     );
 
     socket.on(
       "disconnect",
-      (reason) => {
-        console.log(
-          "Disconnected from Rush Alert server:",
-          reason
-        );
-
-        setSocketConnected(
-          false
-        );
+      () => {
+        setSocketConnected(false);
       }
     );
 
     socket.on(
       "connect_error",
-      (error) => {
-        console.error(
-          "Socket connection error:",
-          error
-        );
-
-        setSocketConnected(
-          false
-        );
+      () => {
+        setSocketConnected(false);
       }
     );
 
     return () => {
+      socket.off("connect");
+      socket.off("rush:new");
+      socket.off("rush:updated");
+      socket.off("disconnect");
+      socket.off("connect_error");
+
       socket.disconnect();
     };
   }, [PCC_ID]);
 
-  /* =========================
+  /* =======================================================
      ACKNOWLEDGE
-  ========================= */
+  ======================================================= */
 
-  async function acknowledgeAlert(
-    id
-  ) {
+  async function acknowledgeAlert(id) {
     try {
       const response =
         await fetch(
-          `${API_URL}/api/rush-store/` +
-            id +
-            "/acknowledge",
+          `${API_URL}/api/rush-store/${id}/acknowledge`,
           {
             method: "PATCH",
           }
@@ -1181,31 +1065,23 @@ function PccDashboard() {
           newRush.id === id
         ) {
           setNewRush(null);
-
           stopTitleAlert();
         }
       }
-    } catch (error) {
-      console.error(
-        "Unable to acknowledge rush:",
-        error
-      );
+    } catch {
+      // Keep UI stable if the request fails.
     }
   }
 
-  /* =========================
+  /* =======================================================
      COMPLETE
-  ========================= */
+  ======================================================= */
 
-  async function completeAlert(
-    id
-  ) {
+  async function completeAlert(id) {
     try {
       const response =
         await fetch(
-          `${API_URL}/api/rush-store/` +
-            id +
-            "/complete",
+          `${API_URL}/api/rush-store/${id}/complete`,
           {
             method: "PATCH",
           }
@@ -1226,6 +1102,16 @@ function PccDashboard() {
             )
         );
 
+        setCompletedAlerts(
+          (currentCompleted) => [
+            data.alert,
+            ...currentCompleted.filter(
+              (alert) =>
+                alert.id !== id
+            ),
+          ]
+        );
+
         warnedRushIdsRef.current.delete(
           id
         );
@@ -1239,49 +1125,312 @@ function PccDashboard() {
           newRush.id === id
         ) {
           setNewRush(null);
-
           stopTitleAlert();
         }
       }
-    } catch (error) {
-      console.error(
-        "Unable to complete rush:",
-        error
-      );
+    } catch {
+      // Keep UI stable if the request fails.
     }
   }
 
-  /* =========================
+  /* =======================================================
      DISMISS
-  ========================= */
+  ======================================================= */
 
   function dismissNewRush() {
     setNewRush(null);
-
     stopTitleAlert();
   }
 
-  /* =========================
-     COUNTS
-  ========================= */
+  /* =======================================================
+     QUEUE COUNTS
+  ======================================================= */
 
-  const activeCount =
+  const receivedAlerts =
     alerts.filter(
       (alert) =>
-        alert.status ===
-        "ACTIVE"
-    ).length;
+        alert.status === "ACTIVE"
+    );
+
+  const acknowledgedAlerts =
+    alerts.filter(
+      (alert) =>
+        alert.status === "ACKNOWLEDGED"
+    );
+
+  const receivedCount =
+    receivedAlerts.length;
 
   const acknowledgedCount =
-    alerts.filter(
-      (alert) =>
-        alert.status ===
-        "ACKNOWLEDGED"
-    ).length;
+    acknowledgedAlerts.length;
 
-  /* =========================
+  const completedCount =
+    completedAlerts.length;
+
+  const totalRushToday =
+    receivedCount +
+    acknowledgedCount +
+    completedCount;
+
+
+  function generateRushDisplayId(alert) {
+  const requestType = (
+    alert.orderType ||
+    alert.requestType ||
+    ""
+  ).toLowerCase();
+
+  const prefix =
+    requestType.includes("translation") ||
+    requestType.includes("interpreter") ||
+    requestType.includes("interpret")
+      ? "INT"
+      : "TRN";
+
+  const name = (
+    alert.patientName ||
+    "Unknown Patient"
+  )
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9_]/g, "");
+
+  const today = new Date();
+
+  const month = String(
+    today.getMonth() + 1
+  ).padStart(2, "0");
+
+  const day = String(
+    today.getDate()
+  ).padStart(2, "0");
+
+  const year = today.getFullYear();
+
+  return `${prefix}_${name}_${month}_${day}_${year}`;
+}
+
+
+  /* =======================================================
+     RENDER CARD
+  ======================================================= */
+
+  function renderRushCard(
+  alert,
+  columnType
+) {
+  const slaStatus =
+    getSlaStatus(
+      alert.deadline,
+      currentTime
+    );
+
+  const remaining =
+    formatRemaining(
+      alert.deadline,
+      currentTime
+    );
+
+  const acknowledged =
+    alert.status === "ACKNOWLEDGED";
+
+  const isCompleted =
+    columnType === "completed";
+
+  return (
+    <article
+      id={"rush-" + alert.id}
+      className={[
+        "pcc-rush-card",
+        acknowledged
+          ? "acknowledged"
+          : "",
+        isCompleted
+          ? "completed"
+          : "",
+        `sla-${slaStatus.toLowerCase()}`,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      key={alert.id}
+    >
+
+      {/* CARD HEADER */}
+      <div className="pcc-card-top">
+
+        <div>
+          <span className="pcc-rush-label">
+            RUSH REQUEST
+          </span>
+
+          <div className="pcc-status">
+            <span className="pcc-status-dot"></span>
+
+            {isCompleted
+              ? "COMPLETED"
+              : acknowledged
+              ? "ACKNOWLEDGED"
+              : "ACTION REQUIRED"}
+          </div>
+        </div>
+
+        <span className="pcc-request-id">
+          Rush ID - {generateRushDisplayId(alert)}
+        </span>
+
+      </div>
+
+
+      {/* PATIENT + REQUEST TYPE */}
+      <div className="pcc-card-info-grid">
+
+        <div className="pcc-card-info">
+          <span>
+            PATIENT NAME
+          </span>
+
+          <strong>
+            {alert.patientName ||
+              "Unknown Patient"}
+          </strong>
+        </div>
+
+        <div className="pcc-card-info">
+          <span>
+            REQUEST TYPE
+          </span>
+
+          <strong>
+            {alert.orderType ||
+              alert.requestType ||
+              "—"}
+          </strong>
+        </div>
+
+      </div>
+
+
+      {/* SLA + TIME */}
+      {!isCompleted && (
+        <div className="pcc-card-sla">
+
+          <div className="pcc-sla-item">
+            <span>
+              SLA
+            </span>
+
+            <strong
+              className={`sla-value ${slaStatus.toLowerCase()}`}
+            >
+              {slaStatus}
+            </strong>
+          </div>
+
+          <div className="pcc-sla-item">
+            <span>
+              TIME
+            </span>
+
+            <strong>
+              {remaining}
+            </strong>
+          </div>
+
+        </div>
+      )}
+
+
+      {/* COMPLETED STATUS */}
+      {isCompleted && (
+        <div className="pcc-card-completed">
+
+          <span>
+            REQUEST STATUS
+          </span>
+
+          <strong>
+            ✓ Successfully completed
+          </strong>
+
+        </div>
+      )}
+
+
+      {/* FILE ACTIVITY NOTE */}
+      <div className="pcc-card-note">
+
+        <span>
+          FILE ACTIVITY NOTE
+        </span>
+
+        <p>
+          {alert.fileActivityNote ||
+            alert.reminder ||
+            "No activity recorded yet."}
+        </p>
+
+      </div>
+
+
+      {/* ASSIGNED TO */}
+      <div className="pcc-card-footer">
+
+        <div className="pcc-assigned">
+
+          <span>
+            ASSIGNED TO
+          </span>
+
+          <strong>
+            <span className="pcc-assigned-dot"></span>
+
+            {alert.coordinator ||
+              currentPcc.name}
+          </strong>
+
+        </div>
+
+
+        {/* ACTIONS */}
+        {!isCompleted && (
+          <div className="pcc-card-actions">
+
+            {!acknowledged && (
+              <button
+                className="pcc-acknowledge"
+                onClick={() =>
+                  acknowledgeAlert(
+                    alert.id
+                  )
+                }
+              >
+                Acknowledge
+              </button>
+            )}
+
+            <button
+              className="pcc-complete"
+              onClick={() =>
+                completeAlert(
+                  alert.id
+                )
+              }
+            >
+              Complete
+            </button>
+
+          </div>
+        )}
+
+      </div>
+
+    </article>
+  );
+}
+
+  /* =======================================================
      RENDER
-  ========================= */
+  ======================================================= */
 
   return (
     <div
@@ -1291,14 +1440,13 @@ function PccDashboard() {
           : "pcc-dashboard"
       }
     >
-      {/* =========================
+      {/* =================================================
           INCOMING RUSH OVERLAY
-      ========================= */}
+      ================================================= */}
 
       {newRush && (
         <div className="pcc-rush-overlay">
           <div className="pcc-rush-modal">
-
             <div className="pcc-rush-pulse">
               !
             </div>
@@ -1323,7 +1471,6 @@ function PccDashboard() {
             </p>
 
             <div className="pcc-overlay-actions">
-
               <button
                 className="pcc-overlay-view"
                 onClick={() => {
@@ -1360,20 +1507,17 @@ function PccDashboard() {
               >
                 Dismiss Alert
               </button>
-
             </div>
           </div>
         </div>
       )}
 
-      {/* =========================
+      {/* =================================================
           TOP BAR
-      ========================= */}
+      ================================================= */}
 
       <header className="pcc-topbar">
-
         <div className="pcc-brand">
-
           <div className="pcc-brand-mark">
             R
           </div>
@@ -1387,19 +1531,15 @@ function PccDashboard() {
               PCC Workspace
             </span>
           </div>
-
         </div>
 
         <div className="pcc-user">
-
           <div className="pcc-user-status">
-
             <span></span>
 
             {socketConnected
-              ? "Connected"
-              : "Connecting..."}
-
+              ? "LIVE"
+              : "CONNECTING"}
           </div>
 
           <div className="pcc-avatar">
@@ -1407,7 +1547,6 @@ function PccDashboard() {
           </div>
 
           <div className="pcc-user-info">
-
             <strong>
               {currentPcc.name}
             </strong>
@@ -1415,381 +1554,457 @@ function PccDashboard() {
             <small>
               PCC
             </small>
-
           </div>
-
         </div>
-
       </header>
 
-      {/* =========================
-          MAIN CONTENT
-      ========================= */}
+      {/* =================================================
+          MAIN
+      ================================================= */}
 
       <main className="pcc-content">
+        {/* =================================================
+            PAGE HEADER
+        ================================================= */}
 
-        <section className="pcc-welcome">
-
-          <div>
-
+        <section className="pcc-page-intro">
+          <div className="pcc-page-intro-content">
             <p className="pcc-eyebrow">
               PCC WORKSPACE
             </p>
 
             <h1>
-              Your rush
+              Rush
               <span>
-                {" "}requests.
+                Operations.
               </span>
             </h1>
 
-            <p>
-              Monitor and complete urgent
-              requests before the one-hour
-              SLA expires.
+            <p className="pcc-intro-copy">
+              Track every urgent request
+              from receipt through
+              completion.
             </p>
-
           </div>
 
-          <div className="pcc-summary">
+          <div className="pcc-live-indicator">
+            <span></span>
 
-            <div>
-
-              <span>
-                ACTIVE
-              </span>
-
-              <strong>
-                {activeCount}
-              </strong>
-
-            </div>
-
-            <div>
-
-              <span>
-                ACKNOWLEDGED
-              </span>
-
-              <strong>
-                {acknowledgedCount}
-              </strong>
-
-            </div>
-
+            {socketConnected
+              ? "LIVE MONITORING"
+              : "CONNECTING..."}
           </div>
-
         </section>
 
-        {/* =========================
-            LIVE QUEUE
-        ========================= */}
 
-        <section className="pcc-alert-section">
+        {/* =================================================
+            WORKFLOW + KPI
+        ================================================= */}
 
-          <div className="pcc-section-heading">
+        <section className="pcc-dashboard-grid">
 
-            <div>
+          {/* =================================================
+              LEFT — WORKFLOW
+          ================================================= */}
 
-              <p className="pcc-eyebrow">
-                LIVE QUEUE
-              </p>
+          <div className="pcc-workflow-panel">
 
-              <h2>
-                Assigned Rush Requests
-              </h2>
+            <div className="pcc-workflow-heading">
+              <div>
+                <p className="pcc-eyebrow">
+                  WORKFLOW
+                </p>
 
+                <h2>
+                  Rush Request Pipeline
+                </h2>
+              </div>
+
+              <div className="pcc-workflow-summary">
+                <span>
+                  {totalRushToday}
+                </span>
+
+                requests today
+              </div>
             </div>
 
-            <div className="pcc-live">
 
-              <span></span>
+            {/* =================================================
+                THREE COLUMN WORKFLOW
+            ================================================= */}
 
-              {socketConnected
-                ? "LIVE MONITORING"
-                : "CONNECTING..."}
+            <section className="pcc-workflow">
 
-            </div>
+              {/* =================================================
+                  RECEIVED
+              ================================================= */}
+
+              <div className="pcc-column received-column">
+
+                <div className="pcc-column-header">
+
+                  <div className="pcc-column-title">
+
+                    <div className="pcc-column-number">
+                      01
+                    </div>
+
+                    <div>
+                      <h3>
+                        Received
+                      </h3>
+
+                      <p>
+                        New rush requests
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="pcc-column-count">
+                    {receivedCount}
+                  </div>
+
+                </div>
+
+
+                <div className="pcc-column-body">
+                  {isLoading ? (
+                    <div className="pcc-column-empty pcc-loading-state">
+                      <div className="pcc-loading-spinner"></div>
+
+                      <strong>
+                        Loading requests
+                      </strong>
+
+                      <span>
+                        Checking the rush queue...
+                      </span>
+                    </div>
+                  ) : loadError ? (
+                    <div className="pcc-column-empty pcc-error-state">
+                      <div className="pcc-error-icon">
+                        !
+                      </div>
+
+                      <strong>
+                        Unable to load requests
+                      </strong>
+
+                      <span>
+                        {loadError}
+                      </span>
+
+                      <button
+                        className="pcc-retry-button"
+                        onClick={retryLoadRushes}
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  ) : receivedAlerts.length === 0 ? (
+                    <div className="pcc-column-empty">
+                      <div>
+                        ✓
+                      </div>
+
+                      <strong>
+                        Queue clear
+                      </strong>
+
+                      <span>
+                        No new rush requests.
+                      </span>
+                    </div>
+                  ) : (
+                    receivedAlerts.map(
+                      (alert) =>
+                        renderRushCard(
+                          alert,
+                          "received"
+                        )
+                    )
+                  )}
+                </div>
+
+              </div>
+
+
+              {/* =================================================
+                  ACKNOWLEDGED
+              ================================================= */}
+
+              <div className="pcc-column acknowledged-column">
+
+                <div className="pcc-column-header">
+
+                  <div className="pcc-column-title">
+
+                    <div className="pcc-column-number">
+                      02
+                    </div>
+
+                    <div>
+                      <h3>
+                        Acknowledged
+                      </h3>
+
+                      <p>
+                        Requests in progress
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="pcc-column-count">
+                    {acknowledgedCount}
+                  </div>
+
+                </div>
+
+
+                <div className="pcc-column-body">
+
+                  {isLoading ? (
+
+                    <div className="pcc-column-empty pcc-loading-state">
+
+                      <div className="pcc-loading-spinner"></div>
+
+                      <strong>
+                        Loading requests
+                      </strong>
+
+                      <span>
+                        Checking the rush queue...
+                      </span>
+
+                    </div>
+
+                  ) : acknowledgedAlerts.length === 0 ? (
+
+                    <div className="pcc-column-empty">
+
+                      <div>
+                        —
+                      </div>
+
+                      <strong>
+                        Nothing in progress
+                      </strong>
+
+                      <span>
+                        Acknowledged requests appear here.
+                      </span>
+
+                    </div>
+
+                  ) : (
+
+                    acknowledgedAlerts.map(
+                      (alert) =>
+                        renderRushCard(
+                          alert,
+                          "acknowledged"
+                        )
+                    )
+
+                  )}
+
+                </div>
+
+              </div>
+
+
+              {/* =================================================
+                  COMPLETED
+              ================================================= */}
+
+              <div className="pcc-column completed-column">
+
+                <div className="pcc-column-header">
+
+                  <div className="pcc-column-title">
+
+                    <div className="pcc-column-number">
+                      03
+                    </div>
+
+                    <div>
+                      <h3>
+                        Completed
+                      </h3>
+
+                      <p>
+                        Finished rush requests
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="pcc-column-count">
+                    {completedCount}
+                  </div>
+
+                </div>
+
+
+                <div className="pcc-column-body">
+
+                  {isLoading ? (
+
+                    <div className="pcc-column-empty pcc-loading-state">
+
+                      <div className="pcc-loading-spinner"></div>
+
+                      <strong>
+                        Loading requests
+                      </strong>
+
+                      <span>
+                        Checking the rush queue...
+                      </span>
+
+                    </div>
+
+                  ) : completedAlerts.length === 0 ? (
+
+                    <div className="pcc-column-empty">
+
+                      <div>
+                        ✓
+                      </div>
+
+                      <strong>
+                        No completed requests
+                      </strong>
+
+                      <span>
+                        Completed rushes appear here.
+                      </span>
+
+                    </div>
+
+                  ) : (
+
+                    completedAlerts.map(
+                      (alert) =>
+                        renderRushCard(
+                          alert,
+                          "completed"
+                        )
+                    )
+
+                  )}
+
+                </div>
+
+              </div>
+
+            </section>
 
           </div>
 
-          {alerts.length === 0 ? (
 
-            <div className="pcc-empty">
+          {/* =================================================
+              RIGHT — KPI
+          ================================================= */}
 
-              <div className="pcc-empty-icon">
+          <aside className="pcc-kpi-panel">
+
+            <div className="pcc-kpi-card">
+
+              <div className="pcc-kpi-icon">
+                ↗
+              </div>
+
+              <div>
+                <span>
+                  TOTAL RUSH TODAY
+                </span>
+
+                <strong>
+                  {totalRushToday}
+                </strong>
+
+                <small>
+                  All requests received
+                </small>
+              </div>
+
+            </div>
+
+
+            <div className="pcc-kpi-card received">
+
+              <div className="pcc-kpi-icon">
+                !
+              </div>
+
+              <div>
+                <span>
+                  RECEIVED
+                </span>
+
+                <strong>
+                  {receivedCount}
+                </strong>
+
+                <small>
+                  Awaiting acknowledgment
+                </small>
+              </div>
+
+            </div>
+
+
+            <div className="pcc-kpi-card acknowledged">
+
+              <div className="pcc-kpi-icon">
                 ✓
               </div>
 
-              <h3>
-                You're all caught up
-              </h3>
+              <div>
+                <span>
+                  ACKNOWLEDGED
+                </span>
 
-              <p>
-                No rush requests are currently
-                assigned to you.
-              </p>
+                <strong>
+                  {acknowledgedCount}
+                </strong>
+
+                <small>
+                  Currently being worked
+                </small>
+              </div>
 
             </div>
 
-          ) : (
 
-            <div className="pcc-alert-list">
+            <div className="pcc-kpi-card completed">
 
-              {alerts.map(
-                (alert) => {
+              <div className="pcc-kpi-icon">
+                ✓
+              </div>
 
-                  const slaStatus =
-                    getSlaStatus(
-                      alert.deadline,
-                      currentTime
-                    );
+              <div>
+                <span>
+                  COMPLETED
+                </span>
 
-                  const remaining =
-                    formatRemaining(
-                      alert.deadline,
-                      currentTime
-                    );
+                <strong>
+                  {completedCount}
+                </strong>
 
-                  const acknowledged =
-                    alert.status ===
-                    "ACKNOWLEDGED";
-
-                  const cardClass =
-                    [
-                      "pcc-rush-card",
-                      acknowledged
-                        ? "acknowledged"
-                        : "",
-                      `sla-${slaStatus.toLowerCase()}`,
-                    ]
-                      .filter(Boolean)
-                      .join(" ");
-
-                  const statusClass =
-                    acknowledged
-                      ? "pcc-status acknowledged"
-                      : "pcc-status";
-
-                  return (
-                    <article
-                      id={
-                        "rush-" +
-                        alert.id
-                      }
-                      className={
-                        cardClass
-                      }
-                      key={
-                        alert.id
-                      }
-                    >
-
-                      <div className="pcc-card-accent"></div>
-
-                      {/* CARD HEADER */}
-
-                      <div className="pcc-card-header">
-
-                        <div>
-
-                          <span className="pcc-rush-badge">
-                            RUSH
-                          </span>
-
-                          <span
-                            className={
-                              statusClass
-                            }
-                          >
-                            ●{" "}
-                            {acknowledged
-                              ? "ACKNOWLEDGED"
-                              : "ACTION REQUIRED"}
-                          </span>
-
-                        </div>
-
-                        <span className="pcc-request-id">
-                          #
-                          {alert.id}
-                        </span>
-
-                      </div>
-
-                      {/* SLA STATUS */}
-
-                      <div className="pcc-sla-status">
-
-                        {slaStatus ===
-                          "ACTIVE" && (
-                          <span className="sla-badge sla-active">
-                            ● ACTIVE
-                          </span>
-                        )}
-
-                        {slaStatus ===
-                          "WARNING" && (
-                          <span className="sla-badge sla-warning">
-                            ⚠ WARNING
-                          </span>
-                        )}
-
-                        {slaStatus ===
-                          "OVERDUE" && (
-                          <span className="sla-badge sla-overdue">
-                            🔴 OVERDUE
-                          </span>
-                        )}
-
-                      </div>
-
-                      {/* CARD MAIN */}
-
-                      <div className="pcc-card-main">
-
-                        <div className="pcc-patient">
-
-                          <span>
-                            PATIENT
-                          </span>
-
-                          <h3>
-                            {alert.patientName ||
-                              "Unknown Patient"}
-                          </h3>
-
-                          <p>
-                            {alert.patientState ||
-                              "—"}
-                            {" • "}
-                            {alert.orderType ||
-                              "—"}
-                          </p>
-
-                        </div>
-
-                        <div className="pcc-details">
-
-                          <div>
-
-                            <span>
-                              CLIENT
-                            </span>
-
-                            <strong>
-                              {alert.clientName ||
-                                "—"}
-                            </strong>
-
-                          </div>
-
-                          <div>
-
-                            <span>
-                              BILLER / COLLECTOR
-                            </span>
-
-                            <strong>
-                              {alert.billerCollector ||
-                                "—"}
-                            </strong>
-
-                          </div>
-
-                        </div>
-
-                        <div className="pcc-sla">
-
-                          <span>
-                            {slaStatus ===
-                            "OVERDUE"
-                              ? "SLA OVERDUE"
-                              : "SLA REMAINING"}
-                          </span>
-
-                          <strong>
-                            {remaining}
-                          </strong>
-
-                          <small>
-                            1 hour from detection
-                          </small>
-
-                        </div>
-
-                      </div>
-
-                      {/* FILE NOTE */}
-
-                      <div className="pcc-note">
-
-                        <span>
-                          FILE ACTIVITY NOTE
-                        </span>
-
-                        <p>
-                          {alert.fileActivityNote ||
-                            alert.reminder ||
-                            "—"}
-                        </p>
-
-                      </div>
-
-                      {/* FOOTER */}
-
-                      <div className="pcc-card-footer">
-
-                        <div className="pcc-assignee">
-
-                          <span>
-                            ASSIGNED TO
-                          </span>
-
-                          <strong>
-                            {alert.coordinator ||
-                              "—"}
-                          </strong>
-
-                        </div>
-
-                        <div className="pcc-actions">
-
-                          {!acknowledged && (
-                            <button
-                              className="pcc-acknowledge"
-                              onClick={() =>
-                                acknowledgeAlert(
-                                  alert.id
-                                )
-                              }
-                            >
-                              Acknowledge
-                            </button>
-                          )}
-
-                          <button
-                            className="pcc-complete"
-                            onClick={() =>
-                              completeAlert(
-                                alert.id
-                              )
-                            }
-                          >
-                            Complete Request
-                          </button>
-
-                        </div>
-
-                      </div>
-
-                    </article>
-                  );
-                }
-              )}
+                <small>
+                  Successfully completed
+                </small>
+              </div>
 
             </div>
-          )}
+
+          </aside>
 
         </section>
 
@@ -1797,6 +2012,5 @@ function PccDashboard() {
     </div>
   );
 }
-
 
 export default PccDashboard;

@@ -1,0 +1,81 @@
+[
+  {
+    "id": "log-1789716818864-4t3qpy",
+    "alertId": "rush-c91d4448dccd3eeebccdb5179784c5a62c48d906918dc73d97ee9b804dc20485",
+    "pccId": "pcc-ian-jasper-abatayo",
+    "coordinator": "Ian Jasper Abatayo",
+    "event": "RUSH_RECEIVED",
+    "timestamp": "2026-09-18T07:33:38.861Z",
+    "details": {
+      "patientName": "ALAXAN, FR",
+      "reminder": "1.What is being Requested & DOS? = RUSH TRN DOS 9/15/2026 2.Searched for Duplicate? = YES 3.Who sent the Order? = ILINGO 4.Rx attached = NOT GIVEN 5.Special Instructions = RUSH FOR TODAY 6.Searched for NCM = NOT IN VIAONE 7.How did we receive this additional request? (only when adding new request to file) =",
+      "deadline": "2026-09-18T08:33:38.861Z"
+    }
+  },
+  {
+    "id": "log-1789716818868-8rglsg",
+    "alertId": "rush-edf7883640036db065cf2e47ac0a18d31549c025935dbc088e59bc6e4eed8262",
+    "pccId": "pcc-harry-mangubat",
+    "coordinator": "Harry Mangubat",
+    "event": "RUSH_RECEIVED",
+    "timestamp": "2026-09-18T07:33:38.862Z",
+    "details": {
+      "patientName": "ESMIRINGHOY, KAKO",
+      "reminder": "RUSH - New Intake : **** Transport Calles, Eduardo / Sedgwick CMS- Denver, CO #530 ****",
+      "deadline": "2026-09-18T08:33:38.862Z"
+    }
+  },
+  {
+    "id": "log-1789716818870-y53tt0",
+    "alertId": "rush-128b3c8f063f4cdc5ccf8d4712bbec5182c3b5d339ef8457ec7c18ddcd1a90bc",
+    "pccId": "pcc-reyza-cuerbo",
+    "coordinator": "Reyza Cuerbo",
+    "event": "RUSH_RECEIVED",
+    "timestamp": "2026-09-18T07:33:38.862Z",
+    "details": {
+      "patientName": "VERGARA, HAIME",
+      "reminder": "What is being Requested & DOS? = RUSH INT 9-16-26 Searched for Duplicate? = YES NONE Who sent the Order? =GOTT Rx attached = NA Special Instructions = PLEASE CONFIRM LANGUAGE TYPE, GOTT ATTACHMENT STATES SPANISH Searched for NCM = TRACY TAYLOR How did we receive this additional request? INTAKE EMAIL",
+      "deadline": "2026-09-18T08:33:38.862Z"
+    }
+  },
+  {
+    "id": "log-1789716818873-qphnq5",
+    "alertId": "rush-455a20378723de8818b3759d304a00c032a6038e8acc399c8af84d0770b88c3b",
+    "pccId": "pcc-daryl-acera",
+    "coordinator": "Daryl Acera",
+    "event": "RUSH_RECEIVED",
+    "timestamp": "2026-09-18T07:33:38.862Z",
+    "details": {
+      "patientName": "Test1, User7",
+      "reminder": "What is being Requested & DOS? =RUSH INT 9/16 Searched for Duplicate? =Yes, none found Who sent the Order? =聽NCM Rx attached =聽N/A Special Instructions =聽NONE Searched for NCM = LISTED How did we receive this additional request? = VERBAL Missing Information= None",
+      "deadline": "2026-09-18T08:33:38.862Z"
+    }
+  },
+  {
+    "id": "log-1789716859342-icaxqt",
+    "alertId": "rush-128b3c8f063f4cdc5ccf8d4712bbec5182c3b5d339ef8457ec7c18ddcd1a90bc",
+    "pccId": "pcc-reyza-cuerbo",
+    "coordinator": "Reyza Cuerbo",
+    "event": "ACKNOWLEDGED",
+    "timestamp": "2026-09-18T07:34:19.341Z",
+    "details": {
+      "patientName": "VERGARA, HAIME",
+      "reminder": "What is being Requested & DOS? = RUSH INT 9-16-26 Searched for Duplicate? = YES NONE Who sent the Order? =GOTT Rx attached = NA Special Instructions = PLEASE CONFIRM LANGUAGE TYPE, GOTT ATTACHMENT STATES SPANISH Searched for NCM = TRACY TAYLOR How did we receive this additional request? INTAKE EMAIL",
+      "detectedAt": "2026-09-18T07:33:38.862Z"
+    }
+  },
+  {
+    "id": "log-1789716869407-xgshn4",
+    "alertId": "rush-128b3c8f063f4cdc5ccf8d4712bbec5182c3b5d339ef8457ec7c18ddcd1a90bc",
+    "pccId": "pcc-reyza-cuerbo",
+    "coordinator": "Reyza Cuerbo",
+    "event": "COMPLETED",
+    "timestamp": "2026-09-18T07:34:29.406Z",
+    "details": {
+      "patientName": "VERGARA, HAIME",
+      "reminder": "What is being Requested & DOS? = RUSH INT 9-16-26 Searched for Duplicate? = YES NONE Who sent the Order? =GOTT Rx attached = NA Special Instructions = PLEASE CONFIRM LANGUAGE TYPE, GOTT ATTACHMENT STATES SPANISH Searched for NCM = TRACY TAYLOR How did we receive this additional request? INTAKE EMAIL",
+      "detectedAt": "2026-09-18T07:33:38.862Z",
+      "completionDurationSeconds": 50
+    }
+  }
+]

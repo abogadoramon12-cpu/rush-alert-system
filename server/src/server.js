@@ -6,6 +6,7 @@ const { Server } = require("socket.io");
 const rushAlertRoutes = require("./routes/rushAlertRoutes");
 const rushStoreRoutes = require("./routes/rushStoreRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
+const auditLogRoutes = require("./routes/auditLogRoutes");
 
 const app = express();
 
@@ -13,17 +14,34 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin:
+      process.env.CLIENT_URL ||
+      "http://localhost:5173",
     methods: ["GET", "POST", "PATCH"],
   },
 });
 
 app.set("io", io);
 
-const PORT = 5000;
+
+/* =====================================================
+   ONLINE PCC CONNECTION TRACKING
+===================================================== */
+
+const pccConnections = new Map();
+
+
+/* =====================================================
+   EXPRESS
+===================================================== */
 
 app.use(cors());
 app.use(express.json());
+
+
+/* =====================================================
+   HEALTH CHECK
+===================================================== */
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -32,6 +50,11 @@ app.get("/api/health", (req, res) => {
       "Rush Alert System server is running",
   });
 });
+
+
+/* =====================================================
+   ROUTES
+===================================================== */
 
 app.use(
   "/api/rush-alerts",
@@ -48,26 +71,56 @@ app.use(
   uploadRoutes
 );
 
+app.use(
+  "/api/audit-logs",
+  auditLogRoutes
+);
+
+
+/* =====================================================
+   SOCKET.IO
+===================================================== */
+
 io.on("connection", (socket) => {
-  console.log(
-    "Browser connected:",
-    socket.id
-  );
+
+  /* ---------------------------------------------------
+     PCC JOIN
+  --------------------------------------------------- */
 
   socket.on("pcc:join", (pccId) => {
+
     if (!pccId) {
       return;
     }
 
-    const room =
-      "pcc:" + pccId;
+    const room = "pcc:" + pccId;
 
     socket.join(room);
 
-    console.log(
-      "PCC joined room:",
-      room
+    socket.data.pccId = pccId;
+
+    const currentConnections =
+      pccConnections.get(pccId) || 0;
+
+    pccConnections.set(
+      pccId,
+      currentConnections + 1
     );
+
+
+    /* -----------------------------------------------
+       Tell all supervisors this PCC is online
+    ----------------------------------------------- */
+
+    io.to("supervisors").emit(
+      "pcc:online",
+      pccId
+    );
+
+
+    /* -----------------------------------------------
+       Confirm connection to PCC
+    ----------------------------------------------- */
 
     socket.emit(
       "pcc:connected",
@@ -79,32 +132,91 @@ io.on("connection", (socket) => {
     );
   });
 
-  socket.on("supervisor:join", () => {
-    socket.join(
-      "supervisors"
-    );
 
-    console.log(
-      "Supervisor joined room:",
-      socket.id
-    );
+  /* ---------------------------------------------------
+     SUPERVISOR JOIN
+  --------------------------------------------------- */
+
+  socket.on("supervisor:join", () => {
+
+    socket.join("supervisors");
+
+
+    /* -----------------------------------------------
+       Send currently connected PCCs
+    ----------------------------------------------- */
+
+    for (const [
+      pccId,
+      connectionCount,
+    ] of pccConnections.entries()) {
+
+      if (connectionCount > 0) {
+        socket.emit(
+          "pcc:online",
+          pccId
+        );
+      }
+    }
   });
+
+
+  /* ---------------------------------------------------
+     DISCONNECT
+  --------------------------------------------------- */
 
   socket.on("disconnect", () => {
-    console.log(
-      "Browser disconnected:",
-      socket.id
-    );
+
+    const pccId =
+      socket.data.pccId;
+
+    if (!pccId) {
+      return;
+    }
+
+    const currentConnections =
+      pccConnections.get(pccId) || 0;
+
+    const remainingConnections =
+      Math.max(
+        0,
+        currentConnections - 1
+      );
+
+
+    if (remainingConnections === 0) {
+
+      pccConnections.delete(
+        pccId
+      );
+
+
+      /* ---------------------------------------------
+         Tell supervisors PCC is now offline
+      --------------------------------------------- */
+
+      io.to("supervisors").emit(
+        "pcc:offline",
+        pccId
+      );
+
+    } else {
+
+      pccConnections.set(
+        pccId,
+        remainingConnections
+      );
+    }
   });
 });
 
-server.listen(PORT, () => {
-  console.log(
-    "Rush Alert System server running on http://localhost:" +
-      PORT
-  );
 
-  console.log(
-    "Socket.IO real-time server is ready."
-  );
-});
+/* =====================================================
+   SERVER
+===================================================== */
+
+const PORT =
+  process.env.PORT || 5000;
+
+server.listen(PORT);
+
