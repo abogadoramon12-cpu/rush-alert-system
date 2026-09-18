@@ -1,11 +1,3 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://rush-alert-system.onrender.com";
 
-export async function checkServerHealth() {
-  const response = await fetch(`${API_URL}/health`);
-
-  if (!response.ok) {
-    throw new Error("Unable to connect to the Rush Alert server.");
-  }
-
-  return response.json();
-}
+export default API_URL;
