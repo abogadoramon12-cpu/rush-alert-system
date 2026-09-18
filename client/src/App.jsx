@@ -55,6 +55,14 @@ function App() {
   const [socketConnected, setSocketConnected] =
     useState(false);
 
+  useEffect(() => {
+  document.title = "Rush Alert — Uploader View";
+
+  return () => {
+    document.title = "Rush Alert";
+  };
+}, []);
+
   /*
    * Keep the countdown updating every second.
    *

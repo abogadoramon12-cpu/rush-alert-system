@@ -131,6 +131,14 @@ function SupervisorDashboard() {
   const [selectedDate, setSelectedDate] =
     useState("TODAY");
 
+  useEffect(() => {
+    document.title = "Rush Alert — Supervisor View";
+
+    return () => {
+      document.title = "Rush Alert";
+    };
+  }, []);
+
   /* =====================================================
      LOAD RUSHES + AUDIT LOGS
   ===================================================== */

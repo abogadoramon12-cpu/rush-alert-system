@@ -784,11 +784,17 @@ function PccDashboard() {
       const activeAlerts =
         data.alerts.filter(
           (alert) =>
-            alert.status !==
-            "COMPLETED"
+            alert.status !== "COMPLETED"
+        );
+
+      const completed =
+        data.alerts.filter(
+          (alert) =>
+            alert.status === "COMPLETED"
         );
 
       setAlerts(activeAlerts);
+      setCompletedAlerts(completed);
     } catch {
       setLoadError(
         "Unable to load the rush queue. Please try again."

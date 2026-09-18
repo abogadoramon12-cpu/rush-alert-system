@@ -121,8 +121,7 @@ function getAllRushes() {
 function getRushesForPcc(pccId) {
   return readRushes().filter(
     (alert) =>
-      alert.pccId === pccId &&
-      alert.status !== "COMPLETED"
+      alert.pccId === pccId
   );
 }
 
