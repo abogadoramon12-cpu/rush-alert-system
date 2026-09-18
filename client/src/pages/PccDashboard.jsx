@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
 import "./PccDashboard.css";
+import API_URL from "../services/api";
 
 const DEFAULT_TITLE =
   "Rush Alert — PCC Workspace";
@@ -844,7 +845,7 @@ function PccDashboard() {
     try {
       const response =
         await fetch(
-          "http://localhost:5000/api/rush-store/pcc/" +
+          `${API_URL}/api/rush-store/pcc/` +
             PCC_ID
         );
 
@@ -898,7 +899,7 @@ function PccDashboard() {
 
     const socket =
       io(
-        "http://localhost:5000",
+        API_URL,
         {
           transports: [
             "websocket",
@@ -1150,7 +1151,7 @@ function PccDashboard() {
     try {
       const response =
         await fetch(
-          "http://localhost:5000/api/rush-store/" +
+          `${API_URL}/api/rush-store/` +
             id +
             "/acknowledge",
           {
@@ -1202,7 +1203,7 @@ function PccDashboard() {
     try {
       const response =
         await fetch(
-          "http://localhost:5000/api/rush-store/" +
+          `${API_URL}/api/rush-store/` +
             id +
             "/complete",
           {
@@ -1797,19 +1798,5 @@ function PccDashboard() {
   );
 }
 
-function unlockAudio() {
-  const context = getAudioContext();
-
-  if (!context) return;
-
-  if (context.state === "suspended") {
-    context.resume();
-  }
-
-  console.log(
-    "AUDIO UNLOCK TEST:",
-    audioContextRef.current?.state
-  );
-}
 
 export default PccDashboard;

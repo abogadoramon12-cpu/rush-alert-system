@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
+import API_URL from "./services/api";
 
 function formatRemaining(deadline) {
   const difference =
@@ -80,7 +81,7 @@ function App() {
     try {
       const response =
         await fetch(
-          "http://localhost:5000/api/rush-store"
+          `${API_URL}/api/rush-store`
         );
 
       const data =
@@ -126,7 +127,7 @@ function App() {
     loadRushes();
 
     const socket =
-      io("http://localhost:5000");
+      io(API_URL);
 
     socket.on("connect", () => {
       console.log(
@@ -248,7 +249,7 @@ function App() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/upload/spreadsheet",
+          `${API_URL}/api/upload/spreadsheet`,
           {
             method: "POST",
             body: formData,
@@ -312,7 +313,7 @@ function App() {
     try {
       const response =
         await fetch(
-          `http://localhost:5000/api/rush-store/${id}/acknowledge`,
+          `${API_URL}/api/rush-store/${id}/acknowledge`,
           {
             method: "PATCH",
           }
@@ -358,7 +359,7 @@ function App() {
     try {
       const response =
         await fetch(
-          `http://localhost:5000/api/rush-store/${id}/complete`,
+          `${API_URL}/api/rush-store/${id}/complete`,
           {
             method: "PATCH",
           }
